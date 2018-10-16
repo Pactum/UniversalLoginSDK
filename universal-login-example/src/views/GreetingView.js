@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Blockies from 'react-blockies';
 
@@ -22,32 +22,57 @@ class GreetingView extends Component {
           <div className="row">
             <span className="checkmark-ico icon-check" />
             <div>
-              <p>You created a new account</p>
+              <strong>You created a new account</strong>
               <p>
                 Received 20 <em>kliks</em>
               </p>
             </div>
           </div>
           <hr className="separator" />
-          <div className="row">
-            <span className="bonus-ico icon-smartphone" />
-            <div>
-              <p>Add a second device to increase security</p>
-              <p>
-                You&#39;ll get 5 extra <em>kliks</em>
-              </p>
+          {this.props.greetMode > 0 ? (
+            <div className="row">
+              <span className="checkmark-ico icon-check order-2" />
+              <div>
+                <strong>You added a new device</strong>
+                <p>
+                  Received 5 <em>kliks</em>
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="row">
+              <span className="bonus-ico icon-smartphone" />
+              <div>
+                <strong>Add a second device to increase security</strong>
+                <p>
+                  You&#39;ll get 5 extra <em>kliks</em>
+                </p>
+              </div>
+            </div>
+          )}
           <hr className="separator" />
-          <div className="row">
-            <span className="icon-printer bonus-ico" />
-            <div>
-              <p>Save a backup code</p>
-              <p>
-                You&#39;ll get 10 extra <em>kliks</em>
-              </p>
+          {this.props.greetMode > 1 ? (
+            <div className="row">
+              <span className="checkmark-ico icon-check order-3" />
+              <div>
+                <strong>You printed your backup code</strong>
+                <p>
+                  Received 10 <em>kliks</em>
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="row">
+              <span className="icon-printer bonus-ico" />
+              <div>
+                <strong>Save a backup code</strong>
+                <p>
+                  You&#39;ll get 10 extra <em>kliks</em>
+                </p>
+              </div>
+            </div>
+          )}
+
           <button
             className="btn fullwidth start-btn"
             onClick={this.props.onStartClick.bind(this)}
@@ -62,6 +87,7 @@ class GreetingView extends Component {
 
 GreetingView.propTypes = {
   identity: PropTypes.object,
+  greetMode: PropTypes.number,
   onStartClick: PropTypes.func
 };
 

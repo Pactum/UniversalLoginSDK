@@ -1,11 +1,11 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import HeaderView from '../views/HeaderView';
 import RequestsBadge from './RequestsBadge';
 import BackBtn from './BackBtn';
 import PendingAuthorizationsView from '../views/PendingAuthorizationsView';
 import PropTypes from 'prop-types';
 import ProfileIdentity from './ProfileIdentity';
-import {tokenContractAddress} from '../../config/config';
+import { tokenContractAddress } from '../../config/config';
 import DEFAULT_PAYMENT_OPTIONS from '../../config/defaultPaymentOptions';
 
 class PendingAuthorizations extends Component {
@@ -20,7 +20,7 @@ class PendingAuthorizations extends Component {
   }
 
   componentDidMount() {
-    const {address} = this.identityService.identity;
+    const { address } = this.identityService.identity;
     this.setState({
       authorisations: this.authorisationService.pendingAuthorisations
     });
@@ -35,22 +35,29 @@ class PendingAuthorizations extends Component {
   }
 
   onAuthorisationChanged(authorisations) {
-    this.setState({authorisations});
+    const { emitter } = this.props.services;
+
+    this.setState({ authorisations });
+
+    if (authorisations.length == 0) emitter.emit('setView', 'MainScreen');
   }
 
   async onAcceptClick(publicKey) {
-    const {identityService} = this.props.services;
+    const { identityService } = this.props.services;
     const to = identityService.identity.address;
-    const {privateKey} = identityService.identity;
-    const {sdk} = identityService;
-    const addKeyPaymentOptions = {...DEFAULT_PAYMENT_OPTIONS, gasToken: tokenContractAddress};
+    const { privateKey } = identityService.identity;
+    const { sdk } = identityService;
+    const addKeyPaymentOptions = {
+      ...DEFAULT_PAYMENT_OPTIONS,
+      gasToken: tokenContractAddress
+    };
     await sdk.addKey(to, publicKey, privateKey, addKeyPaymentOptions);
   }
 
   async onDenyClick(publicKey) {
-    const {identityService} = this.props.services;
+    const { identityService } = this.props.services;
     const identityAddress = identityService.identity.address;
-    const {sdk} = identityService;
+    const { sdk } = identityService;
     await sdk.denyRequest(identityAddress, publicKey);
   }
 

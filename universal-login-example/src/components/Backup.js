@@ -56,7 +56,6 @@ class Backup extends Component {
       identityService.identity.privateKey,
       addKeysPaymentOptions
     );
-    // emitter.emit('showModal', 'backup');
     emitter.emit('setView', 'Greeting');
   }
 
