@@ -1,10 +1,10 @@
 import chai, {expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import ERC1077ApprovalScheme from '../../build/ERC1077ApprovalScheme';
-import {createMockProvider, deployContract, getWallets, solidity} from 'ethereum-waffle';
-import {addressToBytes32} from '../utils';
+import {solidity} from 'ethereum-waffle';
+import basicIdentity from '../fixtures/basicIdentity';
 import {utils} from 'ethers';
 import {EXECUTION_TYPE_MANAGEMENT, EXECUTION_TYPE_ACTION, OPERATION_CALL} from 'universal-login-contracts/lib/consts';
+import TestHelper from '../testHelper';
 
 chai.use(chaiAsPromised);
 chai.use(solidity);
@@ -13,55 +13,42 @@ const {parseEther} = utils;
 const to = '0x0000000000000000000000000000000000000001';
 const ETHER = '0x0000000000000000000000000000000000000000';
 
+
 describe('ERC1077 Approval scheme', async () => {
+  const testHelper = new TestHelper();
   let provider;
-  let deployer;
-  let managementKey;
-  let wallet;
   let identity;
 
-  before(async () => {
-    provider = createMockProvider();
-    [deployer, wallet] = await getWallets(provider);
-    managementKey = addressToBytes32(wallet.address);
-    identity = await deployContract(deployer, ERC1077ApprovalScheme, [managementKey]);
-    await deployer.send(identity.address, parseEther('1.0'));
-    expect(await identity.requiredSignatures(0)).to.eq(1);
+  beforeEach(async () => {
+    ({provider, identity} = await testHelper.load(basicIdentity));
   });
 
-  describe('construction', () => {
-    it('should require one approval for management execution', async () => {
-      expect(await identity.requiredSignatures(EXECUTION_TYPE_MANAGEMENT)).to.eq(1);
-    });
 
-    it('should require one approval for action execution', async () => {
-      expect(await identity.requiredSignatures(EXECUTION_TYPE_ACTION)).to.eq(1);
-    });
-
-    it('should have 0 nonce', async () => {
-      expect(await identity.lastNonce()).to.eq(0);
-    });
+  it('properly construct', async () => {
+    expect(await identity.requiredSignatures(EXECUTION_TYPE_MANAGEMENT)).to.eq(1);
+    expect(await identity.requiredSignatures(EXECUTION_TYPE_ACTION)).to.eq(1);
+    expect(await identity.lastNonce()).to.eq(0);
   });
+
 
   describe('successful execution of transfer', () => {
-    before(async () => {
+    it('transfers funds', async () => {
       await identity.executeSigned(to, parseEther('1.0'), [], 0, 0, 0, ETHER, OPERATION_CALL, [], []);
-    });
-
-    it('transfer funds', async () => {
       expect(await provider.getBalance(to)).to.eq(parseEther('1.0'));
+      expect(await identity.lastNonce()).to.eq(2);
     });
 
-    it('increase nonce', async () => {
-      expect(await identity.lastNonce()).to.eq(1);
+    it('emits ExecutedSigned event', async () => {
+      await expect(identity.executeSigned(to, parseEther('1.0'), [], 0, 0, 0, ETHER, OPERATION_CALL, [], []))
+        .to.emit(identity, 'ExecutedSigned')
+        .withArgs('0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470', 0, true);
     });
-
-    xit('refund');
-    xit('emit event');
+    xit('refunds');
   });
 
   describe('fails if invalid nonce', () => {
     it('fails if nonce too low', async () => {
+      await identity.executeSigned(to, parseEther('1.0'), [], 0, 0, 0, ETHER, OPERATION_CALL, [], []);
       await expect(identity.executeSigned(to, parseEther('1.0'), [], 0, 0, 0, ETHER, OPERATION_CALL, [], []))
         .to.be.revertedWith('Invalid nonce');
     });
@@ -85,7 +72,7 @@ describe('ERC1077 Approval scheme', async () => {
   });
 
 
-  xdescribe('fails if not enough signature', () => {
+  xdescribe('fails if not enough signatures', () => {
     xit('increase nonce');
     xit('refunded');
   });

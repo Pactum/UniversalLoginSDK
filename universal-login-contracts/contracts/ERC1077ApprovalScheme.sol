@@ -3,6 +3,7 @@ pragma solidity ^0.4.24;
 import "./KeyHolder.sol";
 import "./ERC1077.sol";
 
+
 contract ERC1077ApprovalScheme is KeyHolder, ERC1077 {
     event ExecutedSigned(bytes32 signHash, uint nonce, bool success);
 
@@ -36,7 +37,9 @@ contract ERC1077ApprovalScheme is KeyHolder, ERC1077 {
         bytes messageSignatures) public
     {
         require(nonce == _lastNonce, "Invalid nonce");
+        /* solium-disable-next-line security/no-call-value */
         bool success = to.call.value(value)(data);
+        emit ExecutedSigned(keccak256(messageSignatures), _lastNonce++, success);
         _lastNonce++;
     }
 }
